@@ -172,8 +172,7 @@ const BaseResponse: FC<BaseResponseProps> = ({
       >
         <div className='w-full overflow-hidden text-ellipsis line-clamp-3'>
           <p
-            className='text-white leading-relaxed wrap-break-word'
-            style={{ fontSize: 'clamp(16px, 3.5vw, 20px)' }}
+            className='text-white leading-relaxed wrap-break-word text-base'
           >
             {response.text.trim() ? (
               <Fragment>
@@ -184,8 +183,7 @@ const BaseResponse: FC<BaseResponseProps> = ({
               </Fragment>
             ) : (
               <span
-                className='text-gray-500 italic'
-                style={{ fontSize: 'clamp(16px, 3.5vw, 20px)' }}
+                className='text-gray-500 italic text-base'
               >
                 {t('conversation.waitingForResponse')}
               </span>

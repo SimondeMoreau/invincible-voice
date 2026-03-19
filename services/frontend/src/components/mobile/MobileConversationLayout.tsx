@@ -1,12 +1,13 @@
 'use client';
 
 import { Pause, Settings } from 'lucide-react';
-import { useState, useCallback, ChangeEvent, KeyboardEvent, FC } from 'react';
+import { useState, useCallback, useEffect, ChangeEvent, KeyboardEvent, FC } from 'react';
 import { PendingResponse } from '@/components/chat/ChatInterface';
 import ChatPanel from '@/components/mobile/ChatPanel';
 import ResponsePanel from '@/components/mobile/ResponsePanel';
 import { useViewportHeight } from '@/hooks/useViewportHeight';
 import { useTranslations } from '@/i18n';
+import { ResponseSize, RESPONSES_SIZES } from '@/constants';
 import { ChatMessage } from '@/types/chatHistory';
 
 type ActivePanel = 'chat' | 'responses';
@@ -20,6 +21,7 @@ interface MobileConversationLayoutProps {
   pendingResponses: PendingResponse[];
   onResponseEdit?: (text: string) => void;
   onResponseSelect: (responseId: string) => void;
+  onResponseSizeChange?: (size: ResponseSize) => void;
   onConnectButtonPress: () => void;
   onSettingsPress: () => void;
   chatHistory: ChatMessage[];
@@ -27,7 +29,13 @@ interface MobileConversationLayoutProps {
   currentSpeakerMessage?: string;
 }
 
-const QUICK_RESPONSES = ['Yes', 'No', 'Ok', 'Tell me more'];
+// Size sent to the backend per tab:
+// Chat tab shows compact chips → request short responses from the LLM
+// Responses tab shows full cards → request medium responses
+const SIZE_BY_PANEL: Record<ActivePanel, ResponseSize> = {
+  chat: RESPONSES_SIZES.S,
+  responses: RESPONSES_SIZES.M,
+};
 
 const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   textInput,
@@ -38,6 +46,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   pendingResponses,
   onResponseEdit = undefined,
   onResponseSelect,
+  onResponseSizeChange,
   onConnectButtonPress,
   onSettingsPress,
   chatHistory,
@@ -48,6 +57,11 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   const [activePanel, setActivePanel] = useState<ActivePanel>('chat');
   const { vh, visualVh } = useViewportHeight();
   const keyboardHeight = Math.max(0, vh - visualVh);
+
+  // Notify backend of size whenever active tab changes (and on mount)
+  useEffect(() => {
+    onResponseSizeChange?.(SIZE_BY_PANEL[activePanel]);
+  }, [activePanel, onResponseSizeChange]);
 
   const onMessageChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -166,13 +180,13 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
 
       {/* Always-visible text input footer */}
       <div className='px-4 pt-2 pb-1 border-t border-gray-700 shrink-0'>
-        {/* Top LLM suggestions (up to 2) — tap to select without switching tabs */}
+        {/* Top LLM suggestions (up to 2, S size) — tap to select without switching tabs */}
         {topSuggestions.length > 0 && (
           <div className='flex gap-2 mb-2 overflow-x-auto no-scrollbar'>
             {topSuggestions.map((r) => (
               <button
                 key={r.id}
-                className='shrink-0 px-3 min-h-[36px] bg-gray-800 border border-gray-600 rounded-full text-sm text-gray-200 hover:bg-gray-700 transition-colors max-w-[45vw] truncate'
+                className='shrink-0 px-3 min-h-[28px] bg-gray-800 border border-gray-600 rounded-full text-xs text-gray-300 hover:bg-gray-700 transition-colors max-w-[48vw] truncate'
                 onClick={() => onResponseSelect(r.id)}
                 title={r.text}
               >

@@ -1071,6 +1071,7 @@ const InvincibleVoice = () => {
             pendingResponses={pendingResponses}
             onResponseSelect={handleResponseSelection}
             onResponseEdit={onResponseEdit}
+            onResponseSizeChange={handleSelectResponseSize}
             onConnectButtonPress={onConnectButtonPress}
             onSettingsPress={handleSettingsOpen}
             chatHistory={rawChatHistory}
