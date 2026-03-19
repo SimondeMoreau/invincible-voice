@@ -1,19 +1,21 @@
+import io
 import logging
+import threading
+from queue import Queue
+from typing import AsyncIterator
+
 import gradium
 import httpx
 from fastapi.responses import StreamingResponse
-from typing import AsyncIterator
+from pocket_tts import TTSModel
+from pocket_tts.data.audio import stream_audio_chunks
+
 from backend.kyutai_constants import (
     KYUTAI_API_KEY,
     TTS_PROVIDER,
     TTS_SERVER,
     TTS_VOICE_ID,
 )
-from pocket_tts import TTSModel
-from pocket_tts.data.audio import stream_audio_chunks
-import io
-import threading
-from queue import Queue
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -22,33 +24,42 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-def write_to_queue(tts_model: TTSModel, queue: Queue, text_to_generate: str, model_state: dict):
-        """Allows writing to the StreamingResponse as if it were a file."""
 
-        class FileLikeToQueue(io.IOBase):
-            def __init__(self, queue):
-                self.queue = queue
+def write_to_queue(
+    tts_model: TTSModel, queue: Queue, text_to_generate: str, model_state: dict
+):
+    """Allows writing to the StreamingResponse as if it were a file."""
 
-            def write(self, data):
-                self.queue.put(data)
+    class FileLikeToQueue(io.IOBase):
+        def __init__(self, queue):
+            self.queue = queue
 
-            def flush(self):
-                pass
+        def write(self, data):
+            self.queue.put(data)
 
-            def close(self):
-                self.queue.put(None)
+        def flush(self):
+            pass
 
-        audio_chunks = tts_model.generate_audio_stream(
-            model_state=model_state, text_to_generate=text_to_generate
-        )
-        stream_audio_chunks(FileLikeToQueue(queue), audio_chunks, tts_model.config.mimi.sample_rate)
+        def close(self):
+            self.queue.put(None)
+
+    audio_chunks = tts_model.generate_audio_stream(
+        model_state=model_state, text_to_generate=text_to_generate
+    )
+    stream_audio_chunks(
+        FileLikeToQueue(queue), audio_chunks, tts_model.config.mimi.sample_rate
+    )
 
 
-def generate_data_with_state(tts_model: TTSModel, text_to_generate: str, model_state: dict):
+def generate_data_with_state(
+    tts_model: TTSModel, text_to_generate: str, model_state: dict
+):
     queue = Queue()
 
     # Run your function in a thread
-    thread = threading.Thread(target=write_to_queue, args=(tts_model, queue, text_to_generate, model_state))
+    thread = threading.Thread(
+        target=write_to_queue, args=(tts_model, queue, text_to_generate, model_state)
+    )
     thread.start()
 
     # Yield data as it becomes available
@@ -60,16 +71,21 @@ def generate_data_with_state(tts_model: TTSModel, text_to_generate: str, model_s
 
     thread.join()
 
+
 tts_model = None
 voice_state = None
-if TTS_PROVIDER == "pocket" and TTS_SERVER == "": # Initialize Pocket TTS only if using Pocket TTS locally
+if (
+    TTS_PROVIDER == "pocket" and TTS_SERVER == ""
+):  # Initialize Pocket TTS only if using Pocket TTS locally
     logger.info("Initializing Pocket TTS model...")
     tts_model = TTSModel.load_model()
     voice_state = tts_model.get_state_for_audio_prompt(TTS_VOICE_ID)
 
+
 async def stream_kyutai_response(response: httpx.Response) -> AsyncIterator[bytes]:
     """Stream Kyutai TTS response as an async generator."""
     response.raise_for_status()
+
     async def audio_generator() -> AsyncIterator[bytes]:
         yield response.content
 
@@ -83,19 +99,21 @@ async def stream_kyutai_response(response: httpx.Response) -> AsyncIterator[byte
     )
 
 
-async def tts_pocket(request_text: str, voice_id: str | None = None) -> StreamingResponse:
-    """Generate TTS audio using Pocket TTS, either locally or via remote server."""    
-    
-    if TTS_SERVER == "": # Local Pocket TTS
+async def tts_pocket(
+    request_text: str, voice_id: str | None = None
+) -> StreamingResponse:
+    """Generate TTS audio using Pocket TTS, either locally or via remote server."""
+
+    if TTS_SERVER == "":  # Local Pocket TTS
         return StreamingResponse(
-                generate_data_with_state(tts_model, request_text, voice_state),
-                media_type="audio/wav",
-                headers={
-                    "Content-Disposition": "attachment; filename=generated_speech.wav",
-                    "Transfer-Encoding": "chunked",
-                },
-            )
-    else: # Remote Pocket TTS server
+            generate_data_with_state(tts_model, request_text, voice_state),
+            media_type="audio/wav",
+            headers={
+                "Content-Disposition": "attachment; filename=generated_speech.wav",
+                "Transfer-Encoding": "chunked",
+            },
+        )
+    else:  # Remote Pocket TTS server
         query = {
             "text": request_text,
             "voice_url": voice_id or TTS_VOICE_ID,
@@ -128,8 +146,9 @@ async def tts_dsm(request_text: str) -> StreamingResponse:
     return await stream_kyutai_response(response)
 
 
-
-async def tts_gradium(request_text: str, voice_id: str | None = None) -> StreamingResponse:
+async def tts_gradium(
+    request_text: str, voice_id: str | None = None
+) -> StreamingResponse:
     """Generate TTS audio using Gradium TTS."""
     client = gradium.client.GradiumClient(
         base_url="https://eu.api.gradium.ai/api/",

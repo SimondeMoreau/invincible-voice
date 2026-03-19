@@ -18,11 +18,14 @@ def is_env_true(env_var_name: str) -> bool:
     env_var_value = os.environ[env_var_name]
     return is_value_true(env_var_value, env_var_name)
 
+
 # The defaults are already ws://, but make the env vars support http:// and https://
 # STT Configuration
 STT_PROVIDER = os.environ.get("KYUTAI_STT_PROVIDER").lower()
 if STT_PROVIDER not in ("gradium", "dsm"):
-    raise ValueError(f"Invalid KYUTAI_STT_PROVIDER: {STT_PROVIDER}, must be 'gradium' or 'dsm'")
+    raise ValueError(
+        f"Invalid KYUTAI_STT_PROVIDER: {STT_PROVIDER}, must be 'gradium' or 'dsm'"
+    )
 KYUTAI_STT_URL = os.environ["KYUTAI_STT_SERVER"]
 
 # TTS Configuration
@@ -32,8 +35,10 @@ if not TTS_PROVIDER:
     # Default to Pocket TTS
     TTS_PROVIDER = "pocket"
 if TTS_PROVIDER not in ("pocket", "gradium", "dsm"):
-    raise ValueError(f"Invalid KYUTAI_TTS_PROVIDER: {TTS_PROVIDER}, must be 'pocket', 'gradium', or 'dsm'")
-if TTS_SERVER == "": # If empty we force local Pocket TTS
+    raise ValueError(
+        f"Invalid KYUTAI_TTS_PROVIDER: {TTS_PROVIDER}, must be 'pocket', 'gradium', or 'dsm'"
+    )
+if TTS_SERVER == "":  # If empty we force local Pocket TTS
     TTS_PROVIDER = "pocket"
 
 KYUTAI_API_KEY = os.environ.get("KYUTAI_API_KEY")
