@@ -1026,7 +1026,15 @@ const InvincibleVoice = () => {
     clearResponses();
     setCurrentSpeakerMessage('');
     setCurrentSpeakerMessageStartTime(null);
-  }, [readyState, clearResponses]);
+
+    // On mobile, default to XS so the compact chips above the text input
+    // receive short responses. The layout sends M when Responses tab is active.
+    if (isMobile) {
+      sendMessage(
+        JSON.stringify({ type: 'desired.responses.length', length: RESPONSES_SIZES.XS }),
+      );
+    }
+  }, [readyState, clearResponses, isMobile, sendMessage]);
 
   // Cleanup temporary TTS cache when component unmounts
   useEffect(() => {
