@@ -1,13 +1,7 @@
 'use client';
 
 import { Edit2 } from 'lucide-react';
-import {
-  useMemo,
-  useCallback,
-  FC,
-  MouseEvent,
-  Fragment,
-} from 'react';
+import { useMemo, useCallback, FC, MouseEvent, Fragment } from 'react';
 import { PendingResponse } from '@/components/chat/ChatInterface';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/utils/cn';
@@ -27,7 +21,7 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
   pendingResponses,
   onResponseEdit = undefined,
   onResponseSelect,
-  onEditResponseInChat,
+  onEditResponseInChat = undefined,
 }) => {
   const t = useTranslations();
   const quickResponses = [
@@ -91,14 +85,13 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
 
       {/* Response grid — 4-row portrait layout, 2x2 grid in landscape */}
       <div className='flex-1 overflow-hidden px-4 pb-4 grid grid-rows-4 gap-2 pt-2 landscape:grid-rows-2 landscape:grid-cols-2'>
-        {allResponses.slice(0, 4).map((response, index) => (
+        {allResponses.slice(0, 4).map((response) => (
           <div
             key={response.id}
             className='min-h-0'
           >
             <div className='w-full h-full px-4 py-2 bg-[#101010] rounded-[20px]'>
               <BaseResponse
-                index={index}
                 isFrozen={isFrozen}
                 onResponseEdit={onResponseEdit}
                 onResponseSelect={onResponseSelect}
@@ -116,7 +109,6 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
 export default ResponsePanel;
 
 interface BaseResponseProps {
-  index: number;
   isFrozen: boolean;
   onResponseEdit?: (text: string) => void;
   onResponseSelect: (responseId: string) => void;
@@ -126,10 +118,10 @@ interface BaseResponseProps {
 
 const BaseResponse: FC<BaseResponseProps> = ({
   isFrozen,
-  onResponseEdit,
+  onResponseEdit = undefined,
   onResponseSelect,
   response,
-  onEditResponseInChat,
+  onEditResponseInChat = undefined,
 }) => {
   const onClickResponse = useCallback(() => {
     onResponseSelect(response.id);
@@ -171,9 +163,7 @@ const BaseResponse: FC<BaseResponseProps> = ({
         onClick={onClickResponse}
       >
         <div className='w-full overflow-hidden text-ellipsis line-clamp-3'>
-          <p
-            className='text-white leading-relaxed wrap-break-word text-base'
-          >
+          <p className='text-white leading-relaxed wrap-break-word text-base'>
             {response.text.trim() ? (
               <Fragment>
                 {response.text}
@@ -182,9 +172,7 @@ const BaseResponse: FC<BaseResponseProps> = ({
                 )}
               </Fragment>
             ) : (
-              <span
-                className='text-gray-500 italic text-base'
-              >
+              <span className='text-gray-500 italic text-base'>
                 {t('conversation.waitingForResponse')}
               </span>
             )}
@@ -196,15 +184,17 @@ const BaseResponse: FC<BaseResponseProps> = ({
           </div>
         )}
       </button>
-      {response.text.trim() && response.isComplete && (onResponseEdit || onEditResponseInChat) && (
-        <button
-          className='absolute top-1 right-1 w-11 h-11 flex items-center justify-center rounded hover:bg-gray-700 transition-colors cursor-pointer'
-          onClick={onClickEdit}
-          title={t('conversation.editResponse')}
-        >
-          <Edit2 className='w-5 h-5 text-gray-400' />
-        </button>
-      )}
+      {response.text.trim() &&
+        response.isComplete &&
+        (onResponseEdit || onEditResponseInChat) && (
+          <button
+            className='absolute top-1 right-1 w-11 h-11 flex items-center justify-center rounded hover:bg-gray-700 transition-colors cursor-pointer'
+            onClick={onClickEdit}
+            title={t('conversation.editResponse')}
+          >
+            <Edit2 className='w-5 h-5 text-gray-400' />
+          </button>
+        )}
     </div>
   );
 };

@@ -15,7 +15,7 @@ interface MobileNoConversationProps {
 export const MobileNoConversation: FC<MobileNoConversationProps> = ({
   onConnectButtonPress,
   onSettingsPress,
-  onHistoryPress,
+  onHistoryPress = undefined,
   hasHistory = false,
 }) => {
   const t = useTranslations();
@@ -23,9 +23,15 @@ export const MobileNoConversation: FC<MobileNoConversationProps> = ({
   return (
     <div className='w-full h-dvh flex flex-col text-white relative'>
       {/* Safe area spacer for notch/status bar */}
-      <div style={{ height: 'var(--safe-area-inset-top)' }} className='shrink-0' />
+      <div
+        style={{ height: 'var(--safe-area-inset-top)' }}
+        className='shrink-0'
+      />
 
-      <div className='absolute top-4 right-4 z-10' style={{ top: 'calc(1rem + var(--safe-area-inset-top))' }}>
+      <div
+        className='absolute top-4 right-4 z-10'
+        style={{ top: 'calc(1rem + var(--safe-area-inset-top))' }}
+      >
         <button
           className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
           onClick={onSettingsPress}
@@ -51,7 +57,10 @@ export const MobileNoConversation: FC<MobileNoConversationProps> = ({
           </button>
         )}
       </div>
-      <div className='absolute bottom-0 right-0 p-6 pointer-events-none' style={{ bottom: 'var(--safe-area-inset-bottom)' }}>
+      <div
+        className='absolute bottom-0 right-0 p-6 pointer-events-none'
+        style={{ bottom: 'var(--safe-area-inset-bottom)' }}
+      >
         <div className='flex flex-col items-end pointer-events-auto'>
           <p className='w-full text-xs text-gray-500 text-right'>
             {t('common.textToSpeechProvider')}
@@ -65,7 +74,10 @@ export const MobileNoConversation: FC<MobileNoConversationProps> = ({
       </div>
 
       {/* Safe area spacer for home indicator */}
-      <div style={{ height: 'var(--safe-area-inset-bottom)' }} className='shrink-0' />
+      <div
+        style={{ height: 'var(--safe-area-inset-bottom)' }}
+        className='shrink-0'
+      />
     </div>
   );
 };

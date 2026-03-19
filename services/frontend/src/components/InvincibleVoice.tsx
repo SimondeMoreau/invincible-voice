@@ -1035,7 +1035,10 @@ const InvincibleVoice = () => {
     // receive short responses. The layout sends M when Responses tab is active.
     if (isMobile) {
       sendMessage(
-        JSON.stringify({ type: 'desired.responses.length', length: RESPONSES_SIZES.XS }),
+        JSON.stringify({
+          type: 'desired.responses.length',
+          length: RESPONSES_SIZES.XS,
+        }),
       );
     }
   }, [readyState, clearResponses, isMobile, sendMessage]);
@@ -1067,15 +1070,19 @@ const InvincibleVoice = () => {
           errors={errors}
           setErrors={setErrors}
         />
-        {!shouldConnect && !isViewingPastConversation && !isShowingHistoryFromIdle && (
-          <MobileNoConversation
-            onConnectButtonPress={onConnectButtonPress}
-            onSettingsPress={handleSettingsOpen}
-            onHistoryPress={() => setIsShowingHistoryFromIdle(true)}
-            hasHistory={(userData?.conversations ?? []).length > 0}
-          />
-        )}
-        {(shouldConnect || isViewingPastConversation || isShowingHistoryFromIdle) && (
+        {!shouldConnect &&
+          !isViewingPastConversation &&
+          !isShowingHistoryFromIdle && (
+            <MobileNoConversation
+              onConnectButtonPress={onConnectButtonPress}
+              onSettingsPress={handleSettingsOpen}
+              onHistoryPress={() => setIsShowingHistoryFromIdle(true)}
+              hasHistory={(userData?.conversations ?? []).length > 0}
+            />
+          )}
+        {(shouldConnect ||
+          isViewingPastConversation ||
+          isShowingHistoryFromIdle) && (
           <MobileConversationLayout
             textInput={textInput}
             onTextInputChange={handleTextInputChange}
@@ -1097,13 +1104,20 @@ const InvincibleVoice = () => {
             onNewConversation={handleNewConversation}
             onDeleteConversation={handleDeleteConversation}
             pastConversation={
-              selectedConversationIndex !== null && userData?.conversations[selectedConversationIndex]
+              selectedConversationIndex !== null &&
+              userData?.conversations[selectedConversationIndex]
                 ? userData.conversations[selectedConversationIndex]
                 : undefined
             }
             isViewingPastConversation={isViewingPastConversation}
-            initialActivePanel={isShowingHistoryFromIdle && !isViewingPastConversation ? 'history' : 'chat'}
-            isHistoryMode={isShowingHistoryFromIdle || isViewingPastConversation}
+            initialActivePanel={
+              isShowingHistoryFromIdle && !isViewingPastConversation
+                ? 'history'
+                : 'chat'
+            }
+            isHistoryMode={
+              isShowingHistoryFromIdle || isViewingPastConversation
+            }
             onBack={() => {
               if (isViewingPastConversation) {
                 // Viewing a past conversation → go back to history list

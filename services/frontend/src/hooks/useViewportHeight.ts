@@ -9,7 +9,10 @@ interface ViewportHeight {
   visualVh: number;
 }
 
-function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {
+function debounce<T extends (...args: unknown[]) => void>(
+  fn: T,
+  ms: number,
+): T {
   let timer: ReturnType<typeof setTimeout> | null = null;
   return ((...args: unknown[]) => {
     if (timer) clearTimeout(timer);

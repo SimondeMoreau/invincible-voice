@@ -1,10 +1,14 @@
 'use client';
 
-import { FC, useCallback, useMemo } from 'react';
 import { MessageSquare, X, Plus } from 'lucide-react';
+import { FC, useCallback, useMemo } from 'react';
 import { useTranslations } from '@/i18n';
-import { Conversation, isSpeakerMessage, isWriterMessage } from '@/utils/userData';
 import { cn } from '@/utils/cn';
+import {
+  Conversation,
+  isSpeakerMessage,
+  isWriterMessage,
+} from '@/utils/userData';
 
 export interface HistoryPanelProps {
   conversations: Conversation[];
@@ -187,7 +191,10 @@ const HistoryPanel: FC<HistoryPanelProps> = ({
         {/* Empty state */}
         {sortedConversations.length === 0 && (
           <div className='flex flex-col items-center justify-center flex-1 text-gray-500 py-12'>
-            <MessageSquare size={40} className='mb-3 opacity-50' />
+            <MessageSquare
+              size={40}
+              className='mb-3 opacity-50'
+            />
             <p className='text-sm'>{t('conversation.noConversationsYet')}</p>
           </div>
         )}
