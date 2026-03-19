@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings } from 'lucide-react';
+import { History, Settings } from 'lucide-react';
 import { FC } from 'react';
 import StartConversationButton from '@/components/ui/StartConversationButton';
 import { useTranslations } from '@/i18n';
@@ -8,11 +8,15 @@ import { useTranslations } from '@/i18n';
 interface MobileNoConversationProps {
   onConnectButtonPress: () => void;
   onSettingsPress: () => void;
+  onHistoryPress?: () => void;
+  hasHistory?: boolean;
 }
 
 export const MobileNoConversation: FC<MobileNoConversationProps> = ({
   onConnectButtonPress,
   onSettingsPress,
+  onHistoryPress,
+  hasHistory = false,
 }) => {
   const t = useTranslations();
 
@@ -32,11 +36,20 @@ export const MobileNoConversation: FC<MobileNoConversationProps> = ({
           </div>
         </button>
       </div>
-      <div className='flex-1 flex items-center justify-center'>
+      <div className='flex-1 flex flex-col items-center justify-center gap-4'>
         <StartConversationButton
           onClick={onConnectButtonPress}
           label={t('conversation.startChatting')}
         />
+        {hasHistory && onHistoryPress && (
+          <button
+            className='flex items-center gap-2 px-6 min-h-[44px] bg-gray-800 border border-gray-600 rounded-2xl text-sm text-gray-200 hover:bg-gray-700 transition-colors'
+            onClick={onHistoryPress}
+          >
+            <History size={16} />
+            {t('conversation.history')}
+          </button>
+        )}
       </div>
       <div className='absolute bottom-0 right-0 p-6 pointer-events-none' style={{ bottom: 'var(--safe-area-inset-bottom)' }}>
         <div className='flex flex-col items-end pointer-events-auto'>

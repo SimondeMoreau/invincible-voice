@@ -105,6 +105,8 @@ const InvincibleVoice = () => {
   >(null);
   const [isViewingPastConversation, setIsViewingPastConversation] =
     useState<boolean>(false);
+  const [isShowingHistoryFromIdle, setIsShowingHistoryFromIdle] =
+    useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [conversationToDelete, setConversationToDelete] = useState<
     number | null
@@ -559,6 +561,7 @@ const InvincibleVoice = () => {
 
       setSelectedConversationIndex(index);
       setIsViewingPastConversation(true);
+      setIsShowingHistoryFromIdle(false);
 
       if (userData?.conversations[index]) {
         const selectedConversation = userData.conversations[index];
@@ -586,6 +589,7 @@ const InvincibleVoice = () => {
 
     setSelectedConversationIndex(null);
     setIsViewingPastConversation(false);
+    setIsShowingHistoryFromIdle(false);
     setRawChatHistory([]);
     clearResponses();
     setTextInput('');
@@ -1063,13 +1067,15 @@ const InvincibleVoice = () => {
           errors={errors}
           setErrors={setErrors}
         />
-        {!shouldConnect && !isViewingPastConversation && (
+        {!shouldConnect && !isViewingPastConversation && !isShowingHistoryFromIdle && (
           <MobileNoConversation
             onConnectButtonPress={onConnectButtonPress}
             onSettingsPress={handleSettingsOpen}
+            onHistoryPress={() => setIsShowingHistoryFromIdle(true)}
+            hasHistory={(userData?.conversations ?? []).length > 0}
           />
         )}
-        {shouldConnect && (
+        {(shouldConnect || isViewingPastConversation || isShowingHistoryFromIdle) && (
           <MobileConversationLayout
             textInput={textInput}
             onTextInputChange={handleTextInputChange}
@@ -1096,6 +1102,19 @@ const InvincibleVoice = () => {
                 : undefined
             }
             isViewingPastConversation={isViewingPastConversation}
+            initialActivePanel={isShowingHistoryFromIdle && !isViewingPastConversation ? 'history' : 'chat'}
+            isHistoryMode={isShowingHistoryFromIdle || isViewingPastConversation}
+            onBack={() => {
+              if (isViewingPastConversation) {
+                // Viewing a past conversation → go back to history list
+                setIsViewingPastConversation(false);
+                setSelectedConversationIndex(null);
+                setIsShowingHistoryFromIdle(true);
+              } else {
+                // Browsing history list from idle → go back to idle
+                setIsShowingHistoryFromIdle(false);
+              }
+            }}
           />
         )}
         {isSettingsOpen && userData && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { Pause, Settings } from 'lucide-react';
+import { ArrowLeft, Pause, Settings } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef, ChangeEvent, KeyboardEvent, FC } from 'react';
 import { PendingResponse } from '@/components/chat/ChatInterface';
 import ChatPanel from '@/components/mobile/ChatPanel';
@@ -36,6 +36,9 @@ interface MobileConversationLayoutProps {
   onDeleteConversation: (index: number) => void;
   pastConversation?: Conversation;
   isViewingPastConversation?: boolean;
+  initialActivePanel?: ActivePanel;
+  onBack?: () => void;
+  isHistoryMode?: boolean;
 }
 
 // Size sent to the backend per tab:
@@ -70,9 +73,12 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   onDeleteConversation,
   pastConversation = undefined,
   isViewingPastConversation = false,
+  initialActivePanel = 'chat',
+  onBack,
+  isHistoryMode = false,
 }) => {
   const t = useTranslations();
-  const [activePanel, setActivePanel] = useState<ActivePanel>('chat');
+  const [activePanel, setActivePanel] = useState<ActivePanel>(initialActivePanel);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { vh, visualVh } = useViewportHeight();
   const keyboardHeight = Math.max(0, vh - visualVh);
@@ -81,6 +87,15 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   useEffect(() => {
     onResponseSizeChange?.(SIZE_BY_PANEL[activePanel]);
   }, [activePanel, onResponseSizeChange]);
+
+  // Switch to chat when a past conversation is selected; back to history when returning to history list
+  useEffect(() => {
+    if (isViewingPastConversation) {
+      setActivePanel('chat');
+    } else if (isHistoryMode) {
+      setActivePanel('history');
+    }
+  }, [isViewingPastConversation, isHistoryMode]);
 
   const onMessageChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -132,23 +147,33 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
       {/* Safe area spacer for notch/status bar */}
       <div style={{ height: 'var(--safe-area-inset-top)' }} className='shrink-0' />
 
-      {/* Header with stop button - fixed height, reduced in landscape */}
+      {/* Header with stop/back button - fixed height, reduced in landscape */}
       <div className='flex items-center justify-between px-4 py-3 landscape:py-1 shrink-0 h-[60px] landscape:h-[44px]'>
-        <button
-          aria-label='Stop conversation'
-          className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
-          onClick={onConnectButtonPress}
-          title={t('conversation.stopConversation')}
-        >
-          <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-2 rounded-2xl text-sm px-5'>
-            {t('conversation.stopConversation')}
-            <Pause
-              width={24}
-              height={24}
-              className='shrink-0 text-white'
-            />
-          </div>
-        </button>
+        {isConnected ? (
+          <button
+            aria-label='Stop conversation'
+            className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
+            onClick={onConnectButtonPress}
+            title={t('conversation.stopConversation')}
+          >
+            <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-2 rounded-2xl text-sm px-5'>
+              {t('conversation.stopConversation')}
+              <Pause width={24} height={24} className='shrink-0 text-white' />
+            </div>
+          </button>
+        ) : (
+          <button
+            aria-label='Back'
+            className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
+            onClick={onBack}
+            title={t('common.back')}
+          >
+            <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-2 rounded-2xl text-sm px-5'>
+              <ArrowLeft width={20} height={20} className='shrink-0 text-white' />
+              {t('common.back')}
+            </div>
+          </button>
+        )}
         <button
           className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
           onClick={onSettingsPress}
@@ -160,8 +185,10 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
         </button>
       </div>
 
-      {/* Tab bar — hidden on tablet (md:) since both panels are always visible */}
-      <div className='flex border-b border-gray-700 shrink-0 md:hidden'>
+      {/* Tab bar — hidden on tablet unless in history mode */}
+      {/* History mode (not connected): show Chat (read-only) + History tabs */}
+      {/* Active session (connected): show Chat + Responses tabs only */}
+      <div className={`flex border-b border-gray-700 shrink-0 ${isHistoryMode ? '' : 'md:hidden'}`}>
         <button
           className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
             activePanel === 'chat'
@@ -170,35 +197,38 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
           }`}
           onClick={() => setActivePanel('chat')}
         >
-          Chat
+          {t('conversation.chat')}
         </button>
-        <button
-          className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
-            activePanel === 'responses'
-              ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-          onClick={() => setActivePanel('responses')}
-        >
-          Responses
-        </button>
-        <button
-          className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
-            activePanel === 'history'
-              ? 'text-blue-400 border-b-2 border-blue-400'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-          onClick={() => setActivePanel('history')}
-        >
-          History
-        </button>
+        {isConnected ? (
+          <button
+            className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
+              activePanel === 'responses'
+                ? 'text-blue-400 border-b-2 border-blue-400'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+            onClick={() => setActivePanel('responses')}
+          >
+            {t('conversation.responses')}
+          </button>
+        ) : (
+          <button
+            className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
+              activePanel === 'history'
+                ? 'text-blue-400 border-b-2 border-blue-400'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+            onClick={() => setActivePanel('history')}
+          >
+            {t('conversation.history')}
+          </button>
+        )}
       </div>
 
       {/* Main panel — flex-1 min-h-0 ensures it fills remaining space without overflow */}
       {/* On tablet (md:): two-column grid with both panels always visible side-by-side */}
-      <div className='flex-1 min-h-0 flex flex-col md:grid md:grid-cols-2 md:gap-4 md:px-2'>
-        {/* On mobile: only show active panel. On tablet (md:): both always visible */}
-        <div className={activePanel === 'chat' ? 'flex flex-col flex-1 min-h-0 md:flex' : 'hidden md:flex md:flex-col md:flex-1 md:min-h-0'}>
+      <div className={`flex-1 min-h-0 flex flex-col ${isHistoryMode ? '' : 'md:grid md:grid-cols-2 md:gap-4 md:px-2'}`}>
+        {/* On mobile: only show active panel. On tablet (md:): both always visible (unless history mode) */}
+        <div className={activePanel === 'chat' ? 'flex flex-col flex-1 min-h-0' : isHistoryMode ? 'hidden' : 'hidden md:flex md:flex-col md:flex-1 md:min-h-0'}>
           <ChatPanel
             chatHistory={chatHistory}
             isConnected={isConnected}
@@ -207,7 +237,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
             isViewingPastConversation={isViewingPastConversation}
           />
         </div>
-        <div className={activePanel === 'responses' ? 'flex flex-col flex-1 min-h-0 md:flex' : 'hidden md:flex md:flex-col md:flex-1 md:min-h-0'}>
+        <div className={activePanel === 'responses' ? 'flex flex-col flex-1 min-h-0' : isHistoryMode ? 'hidden' : 'hidden md:flex md:flex-col md:flex-1 md:min-h-0'}>
           <ResponsePanel
             frozenResponses={frozenResponses}
             onFreezeToggle={onFreezeToggle}
@@ -217,7 +247,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
             onEditResponseInChat={handleEditResponse}
           />
         </div>
-        <div className={activePanel === 'history' ? 'flex flex-col flex-1 min-h-0 md:hidden' : 'hidden'}>
+        <div className={activePanel === 'history' ? 'flex flex-col flex-1 min-h-0' : 'hidden'}>
           <HistoryPanel
             conversations={conversations}
             selectedConversationIndex={selectedConversationIndex}
