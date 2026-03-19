@@ -34,6 +34,8 @@ interface MobileConversationLayoutProps {
   onConversationSelect: (index: number) => void;
   onNewConversation: () => void;
   onDeleteConversation: (index: number) => void;
+  pastConversation?: Conversation;
+  isViewingPastConversation?: boolean;
 }
 
 // Size sent to the backend per tab:
@@ -66,6 +68,8 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   onConversationSelect,
   onNewConversation,
   onDeleteConversation,
+  pastConversation = undefined,
+  isViewingPastConversation = false,
 }) => {
   const t = useTranslations();
   const [activePanel, setActivePanel] = useState<ActivePanel>('chat');
@@ -199,6 +203,8 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
             chatHistory={chatHistory}
             isConnected={isConnected}
             currentSpeakerMessage={currentSpeakerMessage}
+            pastConversation={pastConversation}
+            isViewingPastConversation={isViewingPastConversation}
           />
         </div>
         <div className={activePanel === 'responses' ? 'flex flex-col flex-1 min-h-0 md:flex' : 'hidden md:flex md:flex-col md:flex-1 md:min-h-0'}>

@@ -1069,7 +1069,7 @@ const InvincibleVoice = () => {
             onSettingsPress={handleSettingsOpen}
           />
         )}
-        {shouldConnect && !isViewingPastConversation && (
+        {shouldConnect && (
           <MobileConversationLayout
             textInput={textInput}
             onTextInputChange={handleTextInputChange}
@@ -1085,11 +1085,17 @@ const InvincibleVoice = () => {
             chatHistory={rawChatHistory}
             isConnected={shouldConnect}
             currentSpeakerMessage={currentSpeakerMessage}
-            conversations={userData?.conversations || []}
+            conversations={userData?.conversations ?? []}
             selectedConversationIndex={selectedConversationIndex}
             onConversationSelect={handleConversationSelect}
             onNewConversation={handleNewConversation}
             onDeleteConversation={handleDeleteConversation}
+            pastConversation={
+              selectedConversationIndex !== null && userData?.conversations[selectedConversationIndex]
+                ? userData.conversations[selectedConversationIndex]
+                : undefined
+            }
+            isViewingPastConversation={isViewingPastConversation}
           />
         )}
         {isSettingsOpen && userData && (
