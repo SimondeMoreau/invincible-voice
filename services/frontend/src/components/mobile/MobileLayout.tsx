@@ -17,7 +17,7 @@ export const MobileNoConversation: FC<MobileNoConversationProps> = ({
   const t = useTranslations();
 
   return (
-    <div className='w-full h-screen flex flex-col text-white relative'>
+    <div className='w-full h-dvh flex flex-col text-white relative'>
       <div className='absolute top-4 right-4 z-10'>
         <button
           className='shrink-0 h-10 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'

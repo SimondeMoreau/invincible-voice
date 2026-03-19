@@ -1063,11 +1063,15 @@ const InvincibleVoice = () => {
             onTextInputChange={handleTextInputChange}
             onSendMessage={handleSendMessage}
             frozenResponses={frozenResponses}
+            onFreezeToggle={handleFreezeToggle}
             pendingResponses={pendingResponses}
             onResponseSelect={handleResponseSelection}
             onResponseEdit={onResponseEdit}
             onConnectButtonPress={onConnectButtonPress}
             onSettingsPress={handleSettingsOpen}
+            chatHistory={rawChatHistory}
+            isConnected={shouldConnect}
+            currentSpeakerMessage={currentSpeakerMessage}
           />
         )}
         {isSettingsOpen && userData && (
