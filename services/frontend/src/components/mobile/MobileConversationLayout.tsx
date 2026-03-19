@@ -27,6 +27,8 @@ interface MobileConversationLayoutProps {
   currentSpeakerMessage?: string;
 }
 
+const QUICK_RESPONSES = ['Yes', 'No', 'Ok', 'Tell me more'];
+
 const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
   textInput,
   onTextInputChange,
@@ -62,6 +64,21 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
     },
     [onSendMessage],
   );
+
+  // When user taps Edit on a response card: fill the text input and switch to chat tab
+  const handleEditResponse = useCallback(
+    (text: string) => {
+      onTextInputChange(text);
+      setActivePanel('chat');
+    },
+    [onTextInputChange],
+  );
+
+  // Top 2 complete LLM suggestions to show above the text input
+  const responsesToShow = frozenResponses ?? pendingResponses;
+  const topSuggestions = responsesToShow
+    .filter((r) => r.text.trim() && r.isComplete)
+    .slice(0, 2);
 
   return (
     <div
@@ -142,13 +159,29 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
             pendingResponses={pendingResponses}
             onResponseEdit={onResponseEdit}
             onResponseSelect={onResponseSelect}
+            onEditResponseInChat={handleEditResponse}
           />
         )}
       </div>
 
       {/* Always-visible text input footer */}
-      <div className='px-4 py-2 border-t border-gray-700 shrink-0'>
-        <div className='flex gap-2'>
+      <div className='px-4 pt-2 pb-1 border-t border-gray-700 shrink-0'>
+        {/* Top LLM suggestions (up to 2) — tap to select without switching tabs */}
+        {topSuggestions.length > 0 && (
+          <div className='flex gap-2 mb-2 overflow-x-auto no-scrollbar'>
+            {topSuggestions.map((r) => (
+              <button
+                key={r.id}
+                className='shrink-0 px-3 min-h-[36px] bg-gray-800 border border-gray-600 rounded-full text-sm text-gray-200 hover:bg-gray-700 transition-colors max-w-[45vw] truncate'
+                onClick={() => onResponseSelect(r.id)}
+                title={r.text}
+              >
+                {r.text}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className='flex gap-2 pb-1'>
           <textarea
             className='flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm'
             placeholder={t('conversation.typeMessagePlaceholder')}

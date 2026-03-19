@@ -2,13 +2,8 @@
 
 import { Edit2 } from 'lucide-react';
 import {
-  useState,
-  useRef,
-  useEffect,
   useMemo,
   useCallback,
-  ChangeEvent,
-  KeyboardEvent,
   FC,
   MouseEvent,
   Fragment,
@@ -17,12 +12,15 @@ import { PendingResponse } from '@/components/chat/ChatInterface';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/utils/cn';
 
+const QUICK_RESPONSES = ['Yes', 'No', 'Ok', 'Tell me more'];
+
 interface ResponsePanelProps {
   frozenResponses: PendingResponse[] | null;
   onFreezeToggle: () => void;
   pendingResponses: PendingResponse[];
   onResponseEdit?: (text: string) => void;
   onResponseSelect: (responseId: string) => void;
+  onEditResponseInChat?: (text: string) => void;
 }
 
 const ResponsePanel: FC<ResponsePanelProps> = ({
@@ -31,10 +29,9 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
   pendingResponses,
   onResponseEdit = undefined,
   onResponseSelect,
+  onEditResponseInChat,
 }) => {
   const t = useTranslations();
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState<string>('');
   const isFrozen = useMemo(() => frozenResponses !== null, [frozenResponses]);
   const responsesToShow = useMemo(
     () => frozenResponses || pendingResponses,
@@ -59,6 +56,19 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
 
   return (
     <div className='flex flex-col flex-1 min-h-0 overflow-hidden'>
+      {/* Quick response presets */}
+      <div className='px-4 pt-2 pb-1 border-b border-gray-700 shrink-0 flex gap-2 overflow-x-auto no-scrollbar'>
+        {QUICK_RESPONSES.map((label) => (
+          <button
+            key={label}
+            className='shrink-0 px-4 min-h-[36px] bg-gray-800 border border-gray-600 rounded-full text-sm text-gray-200 hover:bg-gray-700 transition-colors'
+            onClick={() => onResponseEdit?.(label)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Freeze toggle control */}
       <div className='px-4 py-2 border-b border-gray-700 shrink-0 flex items-center justify-end'>
         <button
@@ -83,25 +93,14 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
             className='min-h-0'
           >
             <div className='w-full h-full px-4 py-2 bg-[#101010] rounded-[20px]'>
-              {editingIndex === index && (
-                <EditingResponse
-                  editingText={editingText}
-                  onResponseEdit={onResponseEdit}
-                  setEditingIndex={setEditingIndex}
-                  setEditingText={setEditingText}
-                />
-              )}
-              {editingIndex !== index && (
-                <BaseResponse
-                  index={index}
-                  isFrozen={isFrozen}
-                  onResponseEdit={onResponseEdit}
-                  onResponseSelect={onResponseSelect}
-                  response={response}
-                  setEditingIndex={setEditingIndex}
-                  setEditingText={setEditingText}
-                />
-              )}
+              <BaseResponse
+                index={index}
+                isFrozen={isFrozen}
+                onResponseEdit={onResponseEdit}
+                onResponseSelect={onResponseSelect}
+                response={response}
+                onEditResponseInChat={onEditResponseInChat}
+              />
             </div>
           </div>
         ))}
@@ -112,97 +111,37 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
 
 export default ResponsePanel;
 
-interface EditingResponseProps {
-  editingText: string;
-  onResponseEdit?: (text: string) => void;
-  setEditingIndex: (index: number | null) => void;
-  setEditingText: (text: string) => void;
-}
-
-const EditingResponse: FC<EditingResponseProps> = ({
-  editingText,
-  onResponseEdit = () => {},
-  setEditingIndex,
-  setEditingText,
-}) => {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const onChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setEditingText(event.target.value);
-    },
-    [setEditingText],
-  );
-  const onKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        if (editingText.trim()) {
-          onResponseEdit(editingText.trim());
-          setEditingIndex(null);
-          setEditingText('');
-        }
-      } else if (event.key === 'Escape') {
-        setEditingIndex(null);
-        setEditingText('');
-      }
-    },
-    [editingText, onResponseEdit, setEditingIndex, setEditingText],
-  );
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.focus();
-      ref.current.setSelectionRange(
-        ref.current.value.length,
-        ref.current.value.length,
-      );
-    }
-  }, []);
-
-  return (
-    <textarea
-      ref={ref}
-      value={editingText}
-      onChange={onChange}
-      onKeyDown={onKeyDown}
-      className='w-full h-full bg-transparent outline-none resize-none text-white'
-      style={{ fontSize: 'clamp(16px, 3.5vw, 20px)' }}
-      placeholder='Type your message…'
-      // eslint-disable-next-line jsx-a11y/no-autofocus
-      autoFocus
-    />
-  );
-};
-
 interface BaseResponseProps {
   index: number;
   isFrozen: boolean;
   onResponseEdit?: (text: string) => void;
   onResponseSelect: (responseId: string) => void;
   response: PendingResponse;
-  setEditingIndex: (index: number | null) => void;
-  setEditingText: (text: string) => void;
+  onEditResponseInChat?: (text: string) => void;
 }
 
 const BaseResponse: FC<BaseResponseProps> = ({
-  index,
   isFrozen,
-  onResponseEdit = undefined,
+  onResponseEdit,
   onResponseSelect,
   response,
-  setEditingIndex,
-  setEditingText,
+  onEditResponseInChat,
 }) => {
   const onClickResponse = useCallback(() => {
     onResponseSelect(response.id);
   }, [onResponseSelect, response]);
+
+  // Tapping edit fills the chat text input and switches to the Chat tab
   const onClickEdit = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      setEditingIndex(index);
-      setEditingText(response.text);
+      if (onEditResponseInChat) {
+        onEditResponseInChat(response.text);
+      } else if (onResponseEdit) {
+        onResponseEdit(response.text);
+      }
     },
-    [index, response.text, setEditingIndex, setEditingText],
+    [response.text, onEditResponseInChat, onResponseEdit],
   );
   const t = useTranslations();
 
@@ -255,7 +194,7 @@ const BaseResponse: FC<BaseResponseProps> = ({
           </div>
         )}
       </button>
-      {response.text.trim() && response.isComplete && onResponseEdit && (
+      {response.text.trim() && response.isComplete && (onResponseEdit || onEditResponseInChat) && (
         <button
           className='absolute top-1 right-1 w-11 h-11 flex items-center justify-center rounded hover:bg-gray-700 transition-colors cursor-pointer'
           onClick={onClickEdit}

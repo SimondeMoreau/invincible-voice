@@ -199,3 +199,12 @@ select {
 /* IMPORTANT: For safe areas to work on iOS, the viewport meta tag in app/layout.tsx
    must include content="width=device-width, initial-scale=1, viewport-fit=cover"
    Check services/frontend/src/app/layout.tsx and add viewport-fit=cover if missing. */
+
+/* Hide scrollbar while keeping scroll functionality (used for horizontal chip strips) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
