@@ -864,10 +864,14 @@ const InvincibleVoice = () => {
           error.message.includes('microphone access'),
         );
         if (!microphoneErrorExists) {
+          const isInsecure =
+            !window.isSecureContext || !window.navigator.mediaDevices;
           return [
             ...prev,
             makeErrorItem(
-              'Please allow microphone access to use InvincibleVoice.',
+              isInsecure
+                ? 'Microphone access requires HTTPS. Please access this app via a secure connection.'
+                : 'Please allow microphone access to use InvincibleVoice.',
             ),
           ];
         }
