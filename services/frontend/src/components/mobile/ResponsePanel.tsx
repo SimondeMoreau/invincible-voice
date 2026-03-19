@@ -61,7 +61,7 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
   return (
     <div className='flex flex-col flex-1 min-h-0 overflow-hidden'>
       {/* Quick response presets */}
-      <div className='px-4 pt-2 pb-1 border-b border-gray-700 shrink-0 flex gap-2 overflow-x-auto no-scrollbar'>
+      <div className='px-4 pt-2 pb-1 landscape:pt-1 landscape:pb-0 border-b border-gray-700 shrink-0 flex gap-2 overflow-x-auto no-scrollbar overscroll-x-contain'>
         {quickResponses.map(({ key, label }) => (
           <button
             key={key}
@@ -74,7 +74,7 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
       </div>
 
       {/* Freeze toggle control */}
-      <div className='px-4 py-2 border-b border-gray-700 shrink-0 flex items-center justify-end'>
+      <div className='px-4 py-2 landscape:py-1 border-b border-gray-700 shrink-0 flex items-center justify-end'>
         <button
           className={cn(
             'px-3 py-1.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors',
@@ -89,8 +89,8 @@ const ResponsePanel: FC<ResponsePanelProps> = ({
         </button>
       </div>
 
-      {/* Response grid — grid-rows-4 fills remaining space */}
-      <div className='flex-1 overflow-hidden px-4 pb-4 grid grid-rows-4 gap-2 pt-2'>
+      {/* Response grid — 4-row portrait layout, 2x2 grid in landscape */}
+      <div className='flex-1 overflow-hidden px-4 pb-4 grid grid-rows-4 gap-2 pt-2 landscape:grid-rows-2 landscape:grid-cols-2'>
         {allResponses.slice(0, 4).map((response, index) => (
           <div
             key={response.id}

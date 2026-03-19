@@ -114,8 +114,8 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
       {/* Safe area spacer for notch/status bar */}
       <div style={{ height: 'var(--safe-area-inset-top)' }} className='shrink-0' />
 
-      {/* Header with stop button - fixed height */}
-      <div className='flex items-center justify-between px-4 py-3 shrink-0 h-[60px]'>
+      {/* Header with stop button - fixed height, reduced in landscape */}
+      <div className='flex items-center justify-between px-4 py-3 landscape:py-1 shrink-0 h-[60px] landscape:h-[44px]'>
         <button
           aria-label='Stop conversation'
           className='shrink-0 h-11 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
@@ -145,7 +145,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
       {/* Tab bar */}
       <div className='flex border-b border-gray-700 shrink-0'>
         <button
-          className={`flex-1 py-3 min-h-[44px] text-sm font-medium transition-colors ${
+          className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
             activePanel === 'chat'
               ? 'text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-400 hover:text-gray-200'
@@ -155,7 +155,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
           Chat
         </button>
         <button
-          className={`flex-1 py-3 min-h-[44px] text-sm font-medium transition-colors ${
+          className={`flex-1 py-3 landscape:py-1 min-h-[44px] text-sm font-medium transition-colors ${
             activePanel === 'responses'
               ? 'text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-400 hover:text-gray-200'
@@ -188,10 +188,11 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
       </div>
 
       {/* Always-visible text input footer */}
-      <div className='px-4 pt-2 pb-1 border-t border-gray-700 shrink-0'>
+      <div className='px-4 pt-2 pb-1 landscape:pt-1 landscape:pb-0 border-t border-gray-700 shrink-0'>
         {/* Top LLM suggestions (up to 2, S size) — tap to select without switching tabs */}
+        {/* Hidden in landscape to reclaim vertical space (response cards remain accessible) */}
         {topSuggestions.length > 0 && (
-          <div className='flex gap-2 mb-2 overflow-x-auto no-scrollbar'>
+          <div className='flex gap-2 mb-2 overflow-x-auto no-scrollbar landscape:hidden'>
             {topSuggestions.map((r) => (
               <button
                 key={r.id}
@@ -207,7 +208,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
         <div className='flex gap-2 pb-1'>
           <textarea
             ref={textareaRef}
-            className='flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm'
+            className='flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm landscape:max-h-[38px] landscape:overflow-y-auto'
             placeholder={t('conversation.typeMessagePlaceholder')}
             rows={2}
             value={textInput}
