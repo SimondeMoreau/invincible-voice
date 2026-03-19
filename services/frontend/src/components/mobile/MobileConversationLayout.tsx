@@ -1,7 +1,7 @@
 'use client';
 
 import { Pause, Settings } from 'lucide-react';
-import { useState, useCallback, useEffect, ChangeEvent, KeyboardEvent, FC } from 'react';
+import { useState, useCallback, useEffect, useRef, ChangeEvent, KeyboardEvent, FC } from 'react';
 import { PendingResponse } from '@/components/chat/ChatInterface';
 import ChatPanel from '@/components/mobile/ChatPanel';
 import ResponsePanel from '@/components/mobile/ResponsePanel';
@@ -33,7 +33,7 @@ interface MobileConversationLayoutProps {
 // Chat tab shows compact chips → request short responses from the LLM
 // Responses tab shows full cards → request medium responses
 const SIZE_BY_PANEL: Record<ActivePanel, ResponseSize> = {
-  chat: RESPONSES_SIZES.S,
+  chat: RESPONSES_SIZES.XS,
   responses: RESPONSES_SIZES.M,
 };
 
@@ -55,6 +55,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
 }) => {
   const t = useTranslations();
   const [activePanel, setActivePanel] = useState<ActivePanel>('chat');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { vh, visualVh } = useViewportHeight();
   const keyboardHeight = Math.max(0, vh - visualVh);
 
@@ -84,6 +85,14 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
     (text: string) => {
       onTextInputChange(text);
       setActivePanel('chat');
+      // Focus the textarea and place cursor at end to open the keyboard
+      setTimeout(() => {
+        const el = textareaRef.current;
+        if (el) {
+          el.focus();
+          el.setSelectionRange(el.value.length, el.value.length);
+        }
+      }, 0);
     },
     [onTextInputChange],
   );
@@ -197,6 +206,7 @@ const MobileConversationLayout: FC<MobileConversationLayoutProps> = ({
         )}
         <div className='flex gap-2 pb-1'>
           <textarea
+            ref={textareaRef}
             className='flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm'
             placeholder={t('conversation.typeMessagePlaceholder')}
             rows={2}
