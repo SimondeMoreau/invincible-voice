@@ -56,7 +56,7 @@ async def generate_data_with_state(
     tts_model: TTSModel, text_to_generate: str, model_state: dict
 ):
     queue = Queue()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     # Run your function in a thread
     thread = threading.Thread(
