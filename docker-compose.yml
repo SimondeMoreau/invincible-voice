@@ -27,7 +27,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro"
-      - "./certs:/certs:ro"
+      - "./volumes/certs:/certs:ro"
 
   frontend:
     image: invincible-voice-frontend:latest
